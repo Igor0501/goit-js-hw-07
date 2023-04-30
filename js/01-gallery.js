@@ -1,47 +1,34 @@
-import { galleryItems } from './gallery-items.js'
-
-console.log(galleryItems)
+import { galleryItems } from "./gallery-items.js";
 // Change code below this line
 
-const gallery = document.querySelector('.gallery')
-const items = []
+const gallery = document.querySelector(".gallery");
 
-galleryItems.forEach(element => {
-	const galleryItem = document.createElement('div')
-	galleryItem.className = 'gallery__item'
-	const galleryLink = document.createElement('a')
-	galleryLink.className = 'gallery__link'
-	galleryLink.href = element.original
-	const galleryImage = document.createElement('img')
-    galleryImage.className = 'gallery__image'
-    galleryImage.src = element.preview;
-    galleryImage.setAttribute('data-source', element.original)
-    galleryImage.alt = element.description;
+const addItems = galleryItems
+  .map(
+    (item) =>
+      `<li class="gallery__item"> <a class="gallery__link" href="${item.original}"> <img class="gallery__image" src="${item.preview}" data-source="${item.original}" alt="${item.description}"/></a></li>`
+  )
+  .join("");
 
-	galleryItem.append(galleryLink)
-	galleryLink.append(galleryImage)
-	items.push(galleryItem)
-})
+gallery.insertAdjacentHTML("afterbegin", addItems);
 
-gallery.append(...items)
+gallery.addEventListener("click", (event) => {
+  event.preventDefault();
+  
+  if (event.target.classList.value === "gallery__image") {
+    const instance = basicLightbox.create(
+      `<img src="${event.target.dataset.source}">`
+    );
 
-gallery.addEventListener('click', e => {
-    e.preventDefault();
-    if (e.target.nodeName !== 'IMG') {
-		return
-	}
+    instance.show();
 
-    const selectedImage = e.target.getAttribute('data-source')
-
-    const instance = basicLightbox.create(`
-    <img src="${selectedImage}" width="800" height="600">
-`)
-
-    instance.show()
-    
-    gallery.addEventListener('keydown', e => {
-		if (e.key === 'Escape') {
-			instance.close()
-		}
-	})
-})
+    gallery.addEventListener("keyup", (event) => {
+      if (instance.visible() === true) {
+        const keyName = event.key;
+        if (keyName === "Escape") {
+          instance.close();
+        }
+      }
+    });
+  }
+});
