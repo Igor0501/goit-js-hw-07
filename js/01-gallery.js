@@ -3,32 +3,53 @@ import { galleryItems } from "./gallery-items.js";
 
 const gallery = document.querySelector(".gallery");
 
-const addItems = galleryItems
-  .map(
-    (item) =>
-      `<li class="gallery__item"> <a class="gallery__link" href="${item.original}"> <img class="gallery__image" src="${item.preview}" data-source="${item.original}" alt="${item.description}"/></a></li>`
-  )
-  .join("");
+function createGallery({ preview, original, description }) {
+    return `<div class="gallery__item">
+    <a class="gallery__link" href="${original}">
+      <img
+        class="gallery__image"
+        src="${preview}"
+        data-source="${original}"
+        alt="${description}"
+      />
+    </a>
+  </div>`;
+};
+const galleryItem = galleryItems.map(createGallery).join("");
+gallery.innerHTML += galleryItem;
+gallery.addEventListener("click", openImage)
 
-gallery.insertAdjacentHTML("afterbegin", addItems);
+function openImage(event) {
+    event.preventDefault();
 
-gallery.addEventListener("click", (event) => {
-  event.preventDefault();
-  
-  if (event.target.classList.value === "gallery__image") {
+    if (event.target.nodeName !== "IMG")
+        return;
+
     const instance = basicLightbox.create(
-      `<img src="${event.target.dataset.source}">`
+        `
+  <div class="modal">
+    <img
+    class="modal__image"
+    src="${event.target.dataset.source}"
+    />
+  </div>
+  `,
+        {
+            onShow: instance => {
+                window.addEventListener('keydown', onEscPress);
+                instance.element().querySelector('img').onclick = instance.close;
+            },
+            onClose: instance => {
+                window.removeEventListener('keydown', onEscPress);
+            },
+        }
     );
 
-    instance.show();
-
-    gallery.addEventListener("keyup", (event) => {
-      if (instance.visible() === true) {
-        const keyName = event.key;
-        if (keyName === "Escape") {
-          instance.close();
+    function onEscPress(eve) {
+        if (eve.code === 'Escape') {
+            instance.close();
         }
-      }
-    });
-  }
-});
+    }
+
+    instance.show();
+}
